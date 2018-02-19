@@ -39,3 +39,9 @@
 
 
 
+ZMQ context:
+ -> Call zmq_ctx_new() once at the start of a process, and zmq_ctx_destroy() once at the end.
+ -> If you're using the fork() system call, do zmq_ctx_new() after the fork and at the beginning
+    of the child process code. In general, you want to do interesting (ZeroMQ) stuff in the children,
+    and boring process management in the parent.
+
