@@ -1,0 +1,41 @@
+
+1) REQ-REP pattern:
+ -> The REQ-REP socket pair is in lockstep:
+     - The client issues zmq_send() and then zmq_recv(), in a loop (or once if that's all it needs).
+     - Doing any other sequence (e.g., sending two messages in a row) will result in a return code
+       of -1 from the send or recv call. 
+     - Similarly, the server issues zmq_recv() and then zmq_send() in that order, as often as it needs to.
+
+ -> If you kill the server (Ctrl-C) and restart it, the client won't recover properly. Recovering
+    from crashing processes isn't quite that easy (covered in Chapter 4 - Reliable Request-Reply Patterns).
+
+2) PUB-SUB pattern (Publisher-Subscriber):
+ -> This pattern is about one-way data distribution, in which a server pushes updates to a set of clients.
+ -> When you use a SUB socket you must set a subscription using zmq_setsockopt() and SUBSCRIB. If you don't
+    set any subscription, you won't get any messages.
+ -> The subscriber can set many subscriptions, which are added together. That is, if an update matches ANY
+    subscription, the subscriber receives it.
+ -> The subscriber can also cancel specific subscriptions. A subscription is often, but not necessarily a
+    printable string. See zmq_setsockopt() for how this works.
+ -> The PUB-SUB socket pair is asynchronous. The client does zmq_recv(), in a loop (or once if that's all
+    it needs). Trying to send a message to a SUB socket will cause an error. Similarly, the service does
+    zmq_send() as often as it needs to, but must not do zmq_recv() on a PUB socket.
+ -> You do not know precisely when a subscriber starts to get messages. In Chapter 2 - Sockets and Patterns
+    we'll explain how to synchronize a publisher and subscribers so that you don't start to publish data
+    until the subscribers really are connected and ready.
+
+ -> A subscriber can connect to more than one publisher, using one connect call each time. Data will then
+    arrive and be interleaved ("fair-queued") so that no single publisher drowns out the others.
+ -> If a publisher has no connected subscribers, then it will simply drop all messages.
+ -> If you're using TCP and a subscriber is slow, messages will queue up on the publisher. We'll look at
+    how to protect publishers against this using the "high-water mark" later.
+ -> From ZeroMQ v3.x, filtering happens at the publisher side when using a connected protocol (tcp:// or ipc://).
+    Using the epgm:// protocol, filtering happens at the subscriber side. 
+ -> In ZeroMQ v2.x, all filtering happened at the subscriber side.
+
+
+3) PUSH-PULL pattern (Parallel Pipeline):
+
+
+
+
